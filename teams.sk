@@ -1,119 +1,133 @@
 options:
   prefix: &c&l[TEAMS]&f
   terms_of_service: false # https://wrdoll.wordpress.com/skripts/terms-of-service/
-  version: "1.2.5" # DO NOT CHANGE
-	author: "WR_Doll770" # DO NOT CHANGE
-
-
+  version: "1.3" # DO NOT CHANGE
+  author: "WR_Doll770" # DO NOT CHANGE
 
 command /team [<text>] [<text>] [<text>]:
   trigger:
-    if {@terms_of_srvice} is true:
-      if arg-1 is not set:
-        send "{@prefix} You have to select an Action.: create, accept, decline, invite, leave, delete, kick, list, members"
-      else:
-        if arg-1 is "create":
-          if arg-2 is not set:
-            send "{@prefix} You have to set a name for the team"
-          else if {team::%player's name%} is set:
-            send "{@prefix} You cannot create a team whilst beeing in a team."
+    if arg-1 is not set:
+      send "{@prefix} You have to select an Action.: create, accept, decline, invite, leave, delete, kick, list, members"
+    else:
+      if arg-1 is "create":
+        if arg-2 is not set:
+          send "{@prefix} You have to set a name for the team"
+        else if {team::%player's name%} is set:
+          send "{@prefix} You cannot create a team whilst beeing in a team."
+        else:
+          if {teams::%arg-2%::players::*} is set:
+            send "{@prefix} this name is already taken. Please select an other name."
           else:
-            if {teams::%arg-2%::players::*} is set:
-              send "{@prefix} this name is already taken. Please select an other name."
-            else:
-              add arg-2 to {teamslist::*}
-              add player's name to {teams::%arg-2%::players::*}
-              set {teams::%arg-2%::owner} to player's name
-              set {team::%player's name%} to arg-2
-              send "{@prefix} You Successfully created the team %arg-2%."
-        else if arg-1 is "delete":
-          if arg-2 is not set:
-            send "{@prefix} You need to Specify a name to confirm deleting your team."
-          else:
-            if player has permission "skript.teams.bypass.delete":
-              loop {teams::%arg-2%::players::*}:
-                clear {team::%loop-value%}
-              clear {teams::%arg-2%::owner}
-              remove arg-2 from {teamslist::*}
-              clear {teams::%arg-2%::players::*}
-              send "{@prefix} You Sucessfully deleted your team."
-            else if {teams::%arg-2%::owner} is not equal to player's name:
-              send "{@prefix} Only the owner can delete a team."
-            else:
-              loop {teams::%arg-2%::players::*}:
-                clear {team::%loop-value%}
-                send "{@prefix} %player's name% deleted the team %arg-2%. You got automatically kicked." to loop-value parsed as player
-                set {teamchat::%loop-value%} to false
-              clear {teams::%arg-2%::owner}
-              remove arg-2 from {teamslist::*}
-              clear {teams::%arg-2%::players::*}
-              send "{@prefix} You Sucessfully deleted your team."
-        else if arg-1 is "leave":
-          if arg-2 is not set:
-            send "{@prefix} You need to Specify the team name you want to leave to confirm."
-          else:
-            if {teams::%arg-2%::players::*} does not contain player's name:
-              send "{@prefix} You arent in the team with the name %arg-2%."
-            else if player's name is equal to {teams::%arg-2%::owner}:
-              send "{@prefix} You cannot leave a team as the owner of it. You have to promote someone first."
-            else:
-              remove player's name from {teams::%arg-2%::players::*}
-              clear {team::%player's name%}
-              send "{@prefix} You successfully left the team %arg-2%."
-              loop {teams::%{arg-2}%::players::*}:
-                send "{@prefix} %player's name% left your team." to loop-value parsed as player
-        else if arg-1 is "promote":
-          if arg-2 is not set:
-            send "{@prefix} You have to Specify the name of your team to promote someone else to the owner of your team."
-          else if arg-3 is not set:
-            send "{@prefix} You have to Specify a player to promote to the owner of your team."
-          else if {teams::%arg-2%::owner} is not equal to player's name:
-            send "{@prefix} You are not the owner of that team."
-          else if {teams::%arg-2%::players::*} does not contain arg-3:
-            send "{@prefix} You can only promote players of your team to the owner."
-          else:
-            set {teams::%arg-2%::owner} to arg-3's name
-            send "{@prefix} You successfully promoted %arg-2% to the owner of the team %arg-3%."
-            send "{@prefix} You got promoted to the owner of the team %arg-3% by %player's name%." to arg-2 parsed as player
+            add arg-2 to {teamslist::*}
+            add player's name to {teams::%arg-2%::players::*}
+            set {teams::%arg-2%::owner} to player's name
+            set {team::%player's name%} to arg-2
+            send "{@prefix} You Successfully created the team %arg-2%."
+            execute console command "lp user %player's uuid% meta setsuffix 1 "" &8[&b%{team::%player's name%}%&8]"""
+      else if arg-1 is "delete":
+        if arg-2 is not set:
+          send "{@prefix} You need to Specify a name to confirm deleting your team."
+        else:
+          if player has permission "skript.teams.bypass.delete":
             loop {teams::%arg-2%::players::*}:
-              send "{@prefix} %arg-2% got promoted to the owner of the team %arg-3% by %player's name%." to loop-value parsed as player
-        else if arg-1 is "kick":
-          if arg-2 is not set:
-            send "{@prefix} You have to Specify a player you want to kick."
-          else if {teams::%{team::%player's name%}%::owner} is not equal to player's name:
-            send "{@prefix} You have no permission to kick this player."
-          else if {teams::%{team::%player's name%}%::players::*} does not contain arg-2:
-            send "{@prefix} This player is not a member of your team."
+              clear {team::%loop-value%}
+            clear {teams::%arg-2%::owner}
+            remove arg-2 from {teamslist::*}
+            clear {teams::%arg-2%::players::*}
+            send "{@prefix} You Sucessfully deleted your team."
+          else if {teams::%arg-2%::owner} is not equal to player's name:
+            send "{@prefix} Only the owner can delete a team."
           else:
-            remove arg-2 from {teams::%{team::%player's name%}%::players::*}
-            clear {team::%arg-2%}
-            send "{@prefix} You successfully kicked %arg-2% from your team."
+            loop {teams::%arg-2%::players::*}:
+              clear {team::%loop-value%}
+              send "{@prefix} %player's name% deleted the team %arg-2%. You got automatically kicked." to loop-value parsed as player
+              set {teamchat::%loop-value%} to false
+              execute console command "lp user %uuid of loop-value parsed as player% meta removesuffix 1"
+            clear {teams::%arg-2%::owner}
+            remove arg-2 from {teamslist::*}
+            clear {teams::%arg-2%::players::*}
+            send "{@prefix} You Sucessfully deleted your team."
+      else if arg-1 is "leave":
+        if arg-2 is not set:
+          send "{@prefix} You need to Specify the team name you want to leave, to confirm leaving."
+        else:
+          if {teams::%arg-2%::players::*} does not contain player's name:
+            send "{@prefix} You arent in the team with the name %arg-2%."
+          else if player's name is equal to {teams::%arg-2%::owner}:
+            send "{@prefix} You cannot leave a team as the owner of it. You have to promote someone first."
+          else:
+            remove player's name from {teams::%arg-2%::players::*}
+            clear {team::%player's name%}
+            send "{@prefix} You successfully left the team %arg-2%."
+            loop {teams::%{arg-2}%::players::*}:
+              send "{@prefix} %player's name% left your team." to loop-value parsed as player
+            execute console command "lp user %player's uuid% meta removesuffix 1"
+      else if arg-1 is "promote":
+        if arg-2 is not set:
+          send "{@prefix} You have to Specify the name of your team to promote someone else to the owner of your team."
+        else if arg-3 is not set:
+          send "{@prefix} You have to Specify a player to promote to the owner of your team."
+        else if {teams::%arg-2%::owner} is not equal to player's name:
+          send "{@prefix} You are not the owner of that team."
+        else if {teams::%arg-2%::players::*} does not contain arg-3:
+          send "{@prefix} You can only promote players of your team to the owner."
+        else:
+          set {teams::%arg-2%::owner} to arg-3's name
+          send "{@prefix} You successfully promoted %arg-2% to the owner of the team %arg-3%."
+          send "{@prefix} You got promoted to the owner of the team %arg-3% by %player's name%." to arg-2 parsed as player
+          loop {teams::%arg-2%::players::*}:
+            send "{@prefix} %arg-2% got promoted to the owner of the team %arg-3% by %player's name%." to loop-value parsed as player
+      else if arg-1 is "kick":
+        if arg-2 is not set:
+          send "{@prefix} You have to Specify a player you want to kick."
+        else if {teams::%{team::%player's name%}%::owner} is not equal to player's name:
+          send "{@prefix} You have no permission to kick this player."
+        else if {teams::%{team::%player's name%}%::players::*} does not contain arg-2:
+          send "{@prefix} This player is not a member of your team."
+        else:
+          remove arg-2 from {teams::%{team::%player's name%}%::players::*}
+          clear {team::%arg-2%}
+          send "{@prefix} You successfully kicked %arg-2% from your team."
+          loop {teams::%{team::%player's name%}%::players::*}:
+            send "{@prefix} %arg-2% got kicked out of the team by %player's name%." to loop-value parsed as player
+      else if arg-1 is "invite":
+        if arg-2 is not set:
+          send "{@prefix} You need to Specify a player you want to invite."
+        else if {teams::%{team::%player's name%}%::owner} is not equal to player's name:
+          send "{@prefix} You dont have permission to invite other players to the team."
+        else if {teaminvites::%arg-2%::*} contains {team::%player's name%}:
+          send "{@prefix} This player already got an invite from your team."
+        else:
+          if {teams::%{team::%player's name%}%::players::*} contains arg-2:
+            send "{@prefix} This player is already in your team."
+          else:
+            add {team::%player's name%} to {teaminvites::%arg-2%::*}
+            set {newteaminvites::%arg-2%} to true
+            send "{@prefix} Successfully invited %arg-2% to your team"
+            if arg-2 parsed as player is online:
+              send "{@prefix} You have recieved a new Team invite." to arg-2 parsed as player
+              set {newteaminvites::%arg-2%} to false
             loop {teams::%{team::%player's name%}%::players::*}:
-              send "{@prefix} %arg-2% got kicked out of the team by %player's name%." to loop-value parsed as player
-        else if arg-1 is "invite":
-          if arg-2 is not set:
-            send "{@prefix} You need to Specify a player you want to invite."
-          else if {teams::%{team::%player's name%}%::owner} is not equal to player's name:
-            send "{@prefix} You dont have permission to invite other players to the team."
-          else if {teaminvites::%arg-2%::*} contains {team::%player's name%}:
-            send "{@prefix} This player already got an invite from your team."
-          else:
-            if {teams::%{team::%player's name%}%::players::*} contains arg-2:
-              send "{@prefix} This player is already in your team."
+              send "{@prefix} %player's name% invited %arg-2% to the team." to loop-value parsed as player
+            execute console command "lp user %arg-2's uuid% meta removesuffix 1"
+      else if arg-1 is "accept":
+        if arg-2 is not set:
+          send "{@prefix} You have to Specify a team invite you would like to accept."
+        else if {teaminvites::%player's name%::*} does not contain arg-2:
+          send "{@prefix} You dont have any invites from this Team."
+        else:
+          if {team::%player's name%} is set:
+            if {teams::%{team::%player's name%}%::owner} is not equal to player's name:
+              execute player command "team leave %{team::%player's name%}%"
+              add player's name to {teams::%arg-2%::players::*}
+              set {team::%player's name%} to arg-2
+              remove arg-2 from {teaminvites::%player's name%::*}
+              send "{@prefix} You sucessfully joined %arg-2%."
+              loop {teams::%arg-2%::players::*}:
+                send "{@prefix} %player's name% accepted the invite to your team." to loop-value parsed as player
+              execute console command "lp user %player's uuid% meta setsuffix 1 "" &8[&b%{team::%player's name%}%&8]"""
             else:
-              add {team::%player's name%} to {teaminvites::%arg-2%::*}
-              set {newteaminvites::%arg-2%} to true
-              send "{@prefix} Successfully invited %arg-2% to your team"
-              if arg-2 parsed as player is online:
-                send "{@prefix} You have recieved a new Team invite." to arg-2 parsed as player
-                set {newteaminvites::%arg-2%} to false
-              loop {teams::%{team::%player's name%}%::players::*}:
-                send "{@prefix} %player's name% invited %arg-2% to the team." to loop-value parsed as player
-        else if arg-1 is "accept":
-          if arg-2 is not set:
-            send "{@prefix} You have to Specify a team invite you would like to accept."
-          else if {teaminvites::%player's name%::*} does not contain arg-2:
-            send "{@prefix} You dont have any invites from this Team."
+              send "{@prefix} You cannot join another team as an owner of a team. You have to either promote someone else first or delete your team."
           else:
             add player's name to {teams::%arg-2%::players::*}
             set {team::%player's name%} to arg-2
@@ -121,109 +135,131 @@ command /team [<text>] [<text>] [<text>]:
             send "{@prefix} You sucessfully joined %arg-2%."
             loop {teams::%arg-2%::players::*}:
               send "{@prefix} %player's name% accepted the invite to your team." to loop-value parsed as player
-        else if arg-1 is "decline":
-          if arg-2 is not set:
-            send "{@prefix} You have tp Specify an invite you would like to decline."
-          else if {teaminvites::%player's name%::*} does not contain arg-2:
-            send "{@prefix} You dont have any invites from %arg-2%, you can decline."
-          else:
-            remove arg-2 from {teaminvites::%player's name%::*}
-            send "{@prefix} You successfully declined the invite from the team %arg-2%."
-            loop {teams::%arg-2%::players::*}:
-              send "{@prefix} %player's name% declined the invite to your team." to loop-value parsed as player
-        else if arg-1 is "invites":
-          send "{@prefix} You have the following team invites: %{teaminvites::%player's name%::*}%"
-        else if arg-1 is "list":
-          send "{@prefix} There are the following teams: %{teamslist::*}%"
-        else if arg-1 is "members":
-          if arg-2 is not set:
-            send "{@prefix} In your team are the following members: %{teams::%{team::%player's name%}%::players::*}%"
-          else:
-            send "{@prefix} In the team %arg-2% are the following members: %{teams::%arg-2%::players::*}%"
-        else if arg-1 is "info":
-          if arg-2 is not set:
-            send "{@prefix} Information on Team %{team::%player's name%}%"
-            send "{@prefix}"
-            send "{@prefix}"
-            clear {onTeamtmp::*}
-            clear {offTeamtmp::*}
-            clear {countTeamtmp}
-            loop {teams::%{team::%player's name%}%::players::*}:
-              if loop-value parsed as player is online:
-                add loop-value to {onTeamtmp::*}
-                add 1 to {countTeamtmp}
-              else:
-                add loop-value to {offTeamtmp::*}
-                add 1 to {countTeamtmp}
-            send "{@prefix} Owner: %{teams::%{team::%player's name%}%::owner}%"
-            send "{@prefix}"
-            send "{@prefix} Members: %{countTeamtmp}%"
-            send "{@prefix} &aOnline&f: %{onTeamtmp::*}%"
-            send "{@prefix} &cOffline&f: %{offTeamtmp::*}%"
-            send "{@prefix}"
-            clear {pttmp}
-            loop {teams::%{team::%player's name%}%::players::*}:
-              if loop-value parsed as player is online:
-                add time played of loop-value parsed as player to {pttmp}
-              else:
-                add {playerpt::%loop-value%} to {pttmp}
-            send "{@prefix} Total Playtime: %{pttmp}%"
-            send "{@prefix}"
-          else:
-            send "{@prefix} Information on Team %arg-2%"
-            send "{@prefix}"
-            send "{@prefix}"
-            clear {onTeamtmp::*}
-            clear {offTeamtmp::*}
-            clear {countTeamtmp}
-            loop {teams::%arg-2%::players::*}:
-              if loop-value parsed as player is online:
-                add loop-value to {onTeamtmp::*}
-                add 1 to {countTeamtmp}
-              else:
-                add loop-value to {offTeamtmp::*}
-                add 1 to {countTeamtmp}
-            send "{@prefix} Owner: %{teams::%arg-2%::owner}%"
-            send "{@prefix}"
-            send "{@prefix} Members: %{countTeamtmp}%"
-            send "{@prefix} &aOnline&f: %{onTeamtmp::*}%"
-            send "{@prefix} &cOffline&f: %{offTeamtmp::*}%"
-            send "{@prefix}"
-            clear {pttmp}
-            loop {teams::%arg-2%::players::*}:
-              if loop-value parsed as player is online:
-                add time played of loop-value parsed as player to {pttmp}
-              else:
-                add {playerpt::%loop-value%} to {pttmp}
-            send "{@prefix} Total Playtime: %{pttmp}%"
-            send "{@prefix}"
-        else if arg-1 is "rename":
-          if arg-2 is not set:
-            send "{@prefix} You have to set a new name for your team."
-          else if {teamslist::*} contains arg-2:
-            send "{@prefix} This name is already taken."
-          else if {teams::%{team::%player's name%}%::owner} is not equal to player's name:
-            send "{@prefix} You have to be the owner to rename the Team."
-          else:
-            remove {team::%player's name%} from {teamslist::*}
-            add arg-2 to {teamslist::*}
-            set {_tmpteam} to {team::%player's name%}
-            loop {teams::%{team::%player's name%}%::players::*}:
-              set {team::%loop-value%} to arg-2
-              add loop-value to {teams::%arg-2%::players::*}
-            clear {teams::%{_tmpteam}%::players::*}
-            clear {teams::%{_tmpteam}%::owner}
-            set {teams::%arg-2%::owner} to player's name
-            send "{@prefix} You successfully renamed your team %{_tmpteam}% to %arg-2%."
-    else:
-      send "{@prefix} You have to set the ToS to true after reading them in the file."
+      else if arg-1 is "decline":
+        if arg-2 is not set:
+          send "{@prefix} You have tp Specify an invite you would like to decline."
+        else if {teaminvites::%player's name%::*} does not contain arg-2:
+          send "{@prefix} You dont have any invites from %arg-2%, you can decline."
+        else:
+          remove arg-2 from {teaminvites::%player's name%::*}
+          send "{@prefix} You successfully declined the invite from the team %arg-2%."
+          loop {teams::%arg-2%::players::*}:
+            send "{@prefix} %player's name% declined the invite to your team." to loop-value parsed as player
+      else if arg-1 is "invites":
+        send "{@prefix} You have the following team invites: %{teaminvites::%player's name%::*}%"
+      else if arg-1 is "list":
+        send "{@prefix} There are the following teams: %{teamslist::*}%"
+      else if arg-1 is "members":
+        if arg-2 is not set:
+          send "{@prefix} In your team are the following members: %{teams::%{team::%player's name%}%::players::*}%"
+        else:
+          send "{@prefix} In the team %arg-2% are the following members: %{teams::%arg-2%::players::*}%"
+      else if arg-1 is "info":
+        if arg-2 is not set:
+          send "{@prefix} Information on Team %{team::%player's name%}%"
+          send "{@prefix}"
+          send "{@prefix}"
+          clear {onTeamtmp::*}
+          clear {offTeamtmp::*}
+          clear {countTeamtmp}
+          loop {teams::%{team::%player's name%}%::players::*}:
+            if loop-value parsed as player is online:
+              add loop-value to {onTeamtmp::*}
+              add 1 to {countTeamtmp}
+            else:
+              add loop-value to {offTeamtmp::*}
+              add 1 to {countTeamtmp}
+          send "{@prefix} Owner: %{teams::%{team::%player's name%}%::owner}%"
+          send "{@prefix}"
+          send "{@prefix} Members: %{countTeamtmp}%"
+          send "{@prefix} &aOnline&f: %{onTeamtmp::*}%"
+          send "{@prefix} &cOffline&f: %{offTeamtmp::*}%"
+          send "{@prefix}"
+          clear {brotmp}
+          clear {telev}
+          loop {teams::%{team::%player's name%}%::players::*}:
+            add {team_brokenblocks::%loop-value parsed as player%} to {brotmp}
+            if loop-value parsed as player is online:
+              add experience of loop-value parsed as player to {telev}
+            else:
+              add {playerxp::%loop-value%} to {telev}
+          send "{@prefix} Total broken Blocks: %{brotmp}%"
+          send "{@prefix}"
+          send "{@prefix} Total XP: %{telev}%"
+          send "{@prefix}"
+          clear {pttmp}
+          loop {teams::%{team::%player's name%}%::players::*}:
+            if loop-value parsed as player is online:
+              add time played of loop-value parsed as player to {pttmp}
+            else:
+              add {playerpt::%loop-value%} to {pttmp}
+          send "{@prefix} Total Playtime: %{pttmp}%"
+          send "{@prefix}"
+        else:
+          send "{@prefix} Information on Team %arg-2%"
+          send "{@prefix}"
+          send "{@prefix}"
+          clear {onTeamtmp::*}
+          clear {offTeamtmp::*}
+          clear {countTeamtmp}
+          loop {teams::%arg-2%::players::*}:
+            if loop-value parsed as player is online:
+              add loop-value to {onTeamtmp::*}
+              add 1 to {countTeamtmp}
+            else:
+              add loop-value to {offTeamtmp::*}
+              add 1 to {countTeamtmp}
+          send "{@prefix} Owner: %{teams::%arg-2%::owner}%"
+          send "{@prefix}"
+          send "{@prefix} Members: %{countTeamtmp}%"
+          send "{@prefix} &aOnline&f: %{onTeamtmp::*}%"
+          send "{@prefix} &cOffline&f: %{offTeamtmp::*}%"
+          send "{@prefix}"
+          clear {brotmp}
+          clear {telev}
+          loop {teams::%arg-2%::players::*}:
+            add {team_brokenblocks::%loop-value parsed as player%} to {brotmp}
+            if loop-value parsed as player is online:
+              add experience of loop-value parsed as player to {telev}
+            else:
+              add {playerxp::%loop-value%} to {telev}
+          send "{@prefix} Total broken Blocks: %{brotmp}%"
+          send "{@prefix}"
+          send "{@prefix} Total XP: %{telev}%"
+          send "{@prefix}"
+          clear {pttmp}
+          loop {teams::%arg-2%::players::*}:
+            if loop-value parsed as player is online:
+              add time played of loop-value parsed as player to {pttmp}
+            else:
+              add {playerpt::%loop-value%} to {pttmp}
+          send "{@prefix} Total Playtime: %{pttmp}%"
+          send "{@prefix}"
+      else if arg-1 is "rename":
+        if arg-2 is not set:
+          send "{@prefix} You have to set a new name for your team."
+        else if {teamslist::*} contains arg-2:
+          send "{@prefix} This name is already taken."
+        else if {teams::%{team::%player's name%}%::owner} is not equal to player's name:
+          send "{@prefix} You have to be the owner to rename the Team."
+        else:
+          remove {team::%player's name%} from {teamslist::*}
+          add arg-2 to {teamslist::*}
+          set {_tmpteam} to {team::%player's name%}
+          loop {teams::%{team::%player's name%}%::players::*}:
+            set {team::%loop-value%} to arg-2
+            add loop-value to {teams::%arg-2%::players::*}
+          clear {teams::%{_tmpteam}%::players::*}
+          clear {teams::%{_tmpteam}%::owner}
+          set {teams::%arg-2%::owner} to player's name
+          send "{@prefix} You successfully renamed your team %{_tmpteam}% to %arg-2%."
 
 on join:
   if {newteaminvites::%player's name%} is true:
     send "{@prefix} You have recieved new team invites."
     set {newteaminvites::%player's name%} to false
   set {teamchat::%player's name%} to false
-
+      
 
 on tab complete for "/team":
   set tab completions for position 1 to "accept" and "info" and "decline" and "members" and "create" and "list" and "delete" and "promote" and "kick" and "invite" and "invites" and "leave"
@@ -257,24 +293,21 @@ on tab complete for "/team":
 
 command /teamchat [<text>]:
   trigger:
-    if {@terms_of_service} is true:
-      if {team::%player's name%} is not set:
-        send "{@prefix} You are not in a team."
-      else if arg-1 is "on":
-        set {teamchat::%player's name%} to true
-        send "{@prefix} teamchat is now turned on."
-      else if arg-1 is "off":
+    if {team::%player's name%} is not set:
+      send "{@prefix} You are not in a team."
+    else if arg-1 is "on":
+      set {teamchat::%player's name%} to true
+      send "{@prefix} teamchat is now turned on."
+    else if arg-1 is "off":
+      set {teamchat::%player's name%} to false
+      send "{@prefix} teamchat is now turned off."
+    else:
+      if {teamchat::%player's name%} is true:
         set {teamchat::%player's name%} to false
         send "{@prefix} teamchat is now turned off."
       else:
-        if {teamchat::%player's name%} is true:
-          set {teamchat::%player's name%} to false
-          send "{@prefix} teamchat is now turned off."
-        else:
-          set {teamchat::%player's name%} to true
-          send "{@prefix} teamchat is now turned on."
-    else:
-      send "{@prefix} You have to set the ToS to true after reading them in the file."
+        set {teamchat::%player's name%} to true
+        send "{@prefix} teamchat is now turned on."
 
 on chat:
   if {teamchat::%player's name%} is true:
@@ -284,3 +317,122 @@ on chat:
 
 on leave:
   set {playerpt::%player's name%} to player's time played
+  set {playerxp::%player's name%} to player's experience
+
+on join:
+  if {players::*} does not contain player's name:
+    add player's name to {players::*}
+
+on block break:
+  add 1 to {team_brokenblocks::%player%}
+
+command /setblocks [<offline player>] [<number>]:
+  permission: op
+  trigger:
+    set {team_brokenblocks::%arg-1%} to arg-2
+    send {team_brokenblocks::%arg-1%}
+
+command /teamptt:
+  trigger:
+    clear {pttl::*}
+    set {_tmp} to 0
+    loop {teamslist::*}:
+      set {tptt::team::%{_tmp}%} to loop-value
+      add 1 to {_tmp}
+    set {_tmp} to 0
+    set {bool} to true
+    while {bool} is true:
+      set {bool} to false
+      if {tptt::team::%{_tmp}%} is set:
+        set {temp} to ptt({tptt::team::%{_tmp}%})
+        set {tptt::time::%{_tmp}%} to {temp}
+        add {temp} to {pttl::*}
+        add 1 to {_tmp}
+        set {bool} to true
+    set {_sorted_pttl::*} to sorted {pttl::*}
+    loop {pttl::*}:
+      set {sorted_pttl::%loop-index%} to last element of {_sorted_pttl::*}
+      remove {sorted_pttl::%loop-index%} from {_sorted_pttl::*}
+    loop {sorted_pttl::*}:
+      set {bool} to true
+      set {_tmp} to 0
+      while {bool} is true:
+        set {bool} to false
+        if {tptt::time::%{_tmp}%} is set:
+          if {tptt::time::%{_tmp}%} is equal to loop-value:
+            send "{@prefix} %{tptt::team::%{_tmp}%}% | %loop-value%"
+          else:
+            add 1 to {_tmp}
+            set {bool} to true
+
+command /teamplaytimetop:
+  trigger:
+    execute player command "teamptt"
+
+command /playtimetop:
+  trigger:
+    execute player command "ptt"
+
+command /ptt:
+  trigger:
+    clear {ptt::*}
+    set {_tmp} to 0
+    loop {players::*}:
+      set {ptt::player::%{_tmp}%} to loop-value
+      add 1 to {_tmp}
+    set {bool} to true
+    set {_tmp} to 0
+    while {bool} is true:
+      set {bool} to false
+      if {ptt::player::%{_tmp}%} is set:
+        if {ptt::player::%{_tmp}%} parsed as player is online:
+          set {temp} to time played of {ptt::player::%{_tmp}%} parsed as player
+        else:
+          set {temp} to {playerpt::%{ptt::player::%{_tmp}%}%}
+        set {ptt::time::%{_tmp}%} to {temp}
+        add {temp} to {ptt::*}
+        add 1 to {_tmp}
+        set {bool} to true
+    set {_sorted_ptt::*} to sorted {ptt::*}
+    loop {ptt::*}:
+      set {sorted_ptt::%loop-index%} to last element of {_sorted_ptt::*}
+      remove {sorted_ptt::%loop-index%} from {_sorted_ptt::*}
+    loop {sorted_ptt::*}:
+      set {bool} to true
+      set {_tmp} to 0
+      while {bool} is true:
+        set {bool} to false
+        if {ptt::time::%{_tmp}%} is set:
+          if {ptt::time::%{_tmp}%} is equal to loop-value:
+            send "{@prefix} %{ptt::player::%{_tmp}%}% | %{ptt::time::%{_tmp}%}%"
+          else:
+            add 1 to {_tmp}
+            set {bool} to true
+    
+
+
+function ptt(t: text) :: timespan:
+  clear {ptttmp}
+  loop {teams::%{_t}%::players::*}:
+    if loop-value parsed as player is online:
+      add time played of loop-value parsed as player to {ptttmp}
+    else:
+      add {playerpt::%loop-value%} to {ptttmp}
+  return {ptttmp}
+
+command /bp [<text>]:
+  trigger:
+    open (metadata tag "bp_%player's name%" of player) to player
+
+command /test [<text>]:
+  trigger:
+    set metadata tag "bp_%player's name%" of player to chest inventory with 6 rows named "Backpack"
+    open (metadata tag "bp_%player's name%" of player) to player
+
+#command /pla [<text>]:
+  #trigger:
+    #if {players::*} does not contain arg-1:
+      #add arg-1 to {players::*}
+      #send {players::*}
+    #else:
+      #send "alr in"
